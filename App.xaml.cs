@@ -33,9 +33,12 @@ namespace Ming_AutoClicker
                 _macroExecutor,
                 _hotkeyService);
 
-            // 设置主窗口 DataContext
-            var mainWindow = (MainWindow)Current.MainWindow;
-            mainWindow.DataContext = MainViewModel;
+            // 创建并显示主窗口
+            var mainWindow = new MainWindow
+            {
+                DataContext = MainViewModel
+            };
+            mainWindow.Show();
         }
 
         protected override void OnExit(ExitEventArgs e)
