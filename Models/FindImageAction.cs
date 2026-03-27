@@ -51,5 +51,7 @@ namespace Ming_AutoClicker.Models
             var waitText = WaitUntilFound ? " (等待)" : "";
             return $"找图: {fileName}{waitText} - {Operation}";
         }
+
+        public override string ToString() => GetDescription();
     }
 }

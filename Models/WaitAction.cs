@@ -22,5 +22,7 @@ namespace Ming_AutoClicker.Models
         {
             return $"等待: {WaitSeconds:F1} 秒";
         }
+
+        public override string ToString() => GetDescription();
     }
 }
