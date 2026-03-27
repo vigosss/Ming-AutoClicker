@@ -413,10 +413,10 @@ namespace Ming_AutoClicker.ViewModels
                 LoopCount = original.LoopCount;
                 LoopIntervalMs = original.LoopIntervalMs;
 
-                _macro.Actions.Clear();
+                Actions.Clear();
                 foreach (var action in original.Actions)
                 {
-                    _macro.Actions.Add(action);
+                    Actions.Add(action);
                 }
                 _macro.UpdatedAt = original.UpdatedAt;
 

@@ -79,7 +79,8 @@ namespace Ming_AutoClicker.ViewModels
         protected bool ShowConfirm(string message, string title = "确认")
         {
             var result = MessageBoxResult.None;
-            OnUIThread(() => result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question));
+            Application.Current.Dispatcher.Invoke(() =>
+                result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question));
             return result == MessageBoxResult.Yes;
         }
 
