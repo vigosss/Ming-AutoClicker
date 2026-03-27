@@ -70,7 +70,7 @@ namespace Ming_AutoClicker.Services
                 }
 
                 // 转换为 Emgu.CV Image（会复制数据）
-                var image = bitmap.ToImage<Bgr, byte>();
+                var image = new Image<Bgr, byte>(bitmap);
                 return image;
             }
             finally

@@ -75,7 +75,6 @@ namespace Ming_AutoClicker.ViewModels
                     OnPropertyChanged(nameof(SelectedActionType));
                     OnPropertyChanged(nameof(CanMoveUp));
                     OnPropertyChanged(nameof(CanMoveDown));
-                    OnPropertyChanged(nameof(CanDelete));
                     // 通知属性面板刷新所有动作相关属性
                     OnPropertyChanged(nameof(ImagePath));
                     OnPropertyChanged(nameof(MatchThreshold));
