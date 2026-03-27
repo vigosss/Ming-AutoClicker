@@ -2,8 +2,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Windows.Forms;
-using System.Windows.Interop;
+using System.Runtime.InteropServices;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -17,6 +16,12 @@ namespace Ming_AutoClicker.Services
     {
         private readonly string _screenshotDirectory;
         private bool _disposed;
+
+        [DllImport("user32.dll")]
+        private static extern int GetSystemMetrics(int nIndex);
+
+        private const int SM_CXSCREEN = 0; // 主屏幕宽度
+        private const int SM_CYSCREEN = 1; // 主屏幕高度
 
         public ScreenCaptureService()
         {
@@ -37,8 +42,8 @@ namespace Ming_AutoClicker.Services
         public Image<Bgr, byte> CaptureFullScreen()
         {
             // 获取屏幕尺寸
-            var screenWidth = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
-            var screenHeight = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
+            var screenWidth = GetSystemMetrics(SM_CXSCREEN);
+            var screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
             return CaptureRegion(0, 0, screenWidth, screenHeight);
         }
