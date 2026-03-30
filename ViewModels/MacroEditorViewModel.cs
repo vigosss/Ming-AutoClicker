@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using Ming_AutoClicker.Helpers;
 using Ming_AutoClicker.Models;
 using Ming_AutoClicker.Services;
+using Ming_AutoClicker.Views;
 
 namespace Ming_AutoClicker.ViewModels
 {
@@ -523,17 +524,53 @@ namespace Ming_AutoClicker.ViewModels
         {
             try
             {
-                var filePath = _screenCaptureService.CaptureAndSave();
-                
-                if (FindImageAction != null)
+                // 最小化主窗口
+                var mainWindow = Application.Current.MainWindow;
+                mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Minimized);
+
+                // 等待窗口最小化完成
+                System.Threading.Thread.Sleep(200);
+
+                // 打开区域选择窗口
+                var selectWindow = new RegionSelectWindow();
+                selectWindow.SelectionCompleted += (region) =>
                 {
-                    ImagePath = _screenCaptureService.GetRelativePath(filePath);
-                    StatusMessage = $"已截图: {ImagePath}";
-                }
+                    if (region.HasValue)
+                    {
+                        try
+                        {
+                            var r = region.Value;
+                            var filePath = _screenCaptureService.CaptureRegionAndSave(
+                                r.X, r.Y, r.Width, r.Height);
+
+                            if (FindImageAction != null)
+                            {
+                                ImagePath = _screenCaptureService.GetRelativePath(filePath);
+                                StatusMessage = $"已截图: {ImagePath} ({r.Width}×{r.Height})";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            StatusMessage = $"截图保存失败: {ex.Message}";
+                        }
+                    }
+                    else
+                    {
+                        StatusMessage = "截图已取消";
+                    }
+
+                    // 恢复主窗口
+                    mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Normal);
+                };
+
+                selectWindow.ShowDialog();
             }
             catch (Exception ex)
             {
                 StatusMessage = $"截图失败: {ex.Message}";
+                // 确保主窗口恢复
+                var mainWindow = Application.Current.MainWindow;
+                mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Normal);
             }
         }
 
