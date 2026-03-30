@@ -28,9 +28,12 @@
                 <CheckBox Grid.Column="2" Content="循环" IsChecked="{Binding LoopEnabled}"
                           VerticalAlignment="Center" Margin="12,0,8,0" FontSize="12"/>
                 <TextBlock Grid.Column="3" Text="次数:" VerticalAlignment="Center" FontSize="12"/>
-                <TextBox Grid.Column="4" Text="{Binding LoopCount}" Width="50" Height="28"
-                         FontSize="12" VerticalContentAlignment="Center" Padding="4,0" Margin="4,0,4,0"
-                         IsEnabled="{Binding LoopEnabled}"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{Binding LoopCount}" Width="50" Height="28"
+                             FontSize="12" VerticalContentAlignment="Center" Padding="4,0"
+                             IsEnabled="{Binding LoopEnabled}" ToolTip="0 = 无限循环"/>
+                    <TextBlock Text="(0=无限)" VerticalAlignment="Center" FontSize="10" Foreground="#999" Margin="4,0,0,0"/>
+                </StackPanel>
                 <TextBlock Grid.Column="5" Text="间隔(ms):" VerticalAlignment="Center" FontSize="12" Margin="0,0,4,0"/>
                 <TextBox Grid.Column="6" Text="{Binding LoopIntervalMs}" Width="60" Height="28"
                          FontSize="12" VerticalContentAlignment="Center" Padding="4,0"

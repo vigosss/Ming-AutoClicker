@@ -391,7 +391,7 @@ namespace Ming_AutoClicker.ViewModels
                     Actions[i].Order = i;
                 }
 
-                _storageService.SaveMacros(new[] { _macro });
+                // 不在这里保存，由 MainWindow.OnEditorRequestSave 统一处理
                 StatusMessage = "保存成功";
                 SaveCompleted?.Invoke(this, EventArgs.Empty);
             }

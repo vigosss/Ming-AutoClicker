@@ -118,7 +118,12 @@ namespace Ming_AutoClicker.Services
         }
 
         /// <summary>
-        /// 在源图像中查找模板
+        /// 多尺度搜索的缩放比例列表（按优先级排序：1.0x 最优先）
+        /// </summary>
+        private static readonly double[] _scaleLevels = { 1.0, 0.9, 1.1, 0.8, 1.2 };
+
+        /// <summary>
+        /// 在源图像中查找模板（支持多尺度搜索）
         /// </summary>
         /// <param name="source">源图像</param>
         /// <param name="templatePath">模板路径</param>
@@ -137,27 +142,70 @@ namespace Ming_AutoClicker.Services
                     return MatchResult.NotFound;
                 }
 
-                // 执行模板匹配
-                using var result = new Mat();
-                CvInvoke.MatchTemplate(source, template, result, TemplateMatchingType.CcoeffNormed);
+                // 多尺度匹配：按优先级依次尝试，1.0x 最优先
+                MatchResult? bestResult = null;
 
-                // 查找最佳匹配位置
-                double minVal = 0, maxVal = 0;
-                Point minLoc = Point.Empty, maxLoc = Point.Empty;
-                CvInvoke.MinMaxLoc(result, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
-
-                // 检查是否达到阈值
-                if (maxVal >= threshold)
+                foreach (var scale in _scaleLevels)
                 {
-                    return new MatchResult
+                    // 计算缩放后的模板尺寸
+                    int scaledWidth = (int)(template.Width * scale);
+                    int scaledHeight = (int)(template.Height * scale);
+
+                    // 缩放后尺寸必须合法
+                    if (scaledWidth < 5 || scaledHeight < 5)
+                        continue;
+
+                    if (scaledWidth > source.Width || scaledHeight > source.Height)
+                        continue;
+
+                    // 缩放模板图像
+                    using var scaledTemplate = scale == 1.0
+                        ? template.Clone()
+                        : template.Resize(scaledWidth, scaledHeight, Inter.Linear);
+
+                    // 执行模板匹配
+                    using var result = new Mat();
+                    CvInvoke.MatchTemplate(source, scaledTemplate, result, TemplateMatchingType.CcoeffNormed);
+
+                    // 查找最佳匹配位置
+                    double minVal = 0, maxVal = 0;
+                    Point minLoc = Point.Empty, maxLoc = Point.Empty;
+                    CvInvoke.MinMaxLoc(result, ref minVal, ref maxVal, ref minLoc, ref maxLoc);
+
+                    // 检查是否达到阈值
+                    if (maxVal >= threshold)
                     {
-                        Found = true,
-                        X = maxLoc.X + template.Width / 2,  // 中心点
-                        Y = maxLoc.Y + template.Height / 2,
-                        Width = template.Width,
-                        Height = template.Height,
-                        Similarity = maxVal
-                    };
+                        var match = new MatchResult
+                        {
+                            Found = true,
+                            X = maxLoc.X + scaledWidth / 2,
+                            Y = maxLoc.Y + scaledHeight / 2,
+                            Width = scaledWidth,
+                            Height = scaledHeight,
+                            Similarity = maxVal
+                        };
+
+                        // 1.0x 首次命中直接返回（最快路径）
+                        if (scale == 1.0)
+                        {
+                            System.Diagnostics.Debug.WriteLine(
+                                $"匹配成功: 缩放 {scale:P0}, 位置({match.X}, {match.Y}), 相似度 {match.Similarity:P}");
+                            return match;
+                        }
+
+                        // 记录最佳结果
+                        if (bestResult == null || match.Similarity > bestResult.Similarity)
+                        {
+                            bestResult = match;
+                            System.Diagnostics.Debug.WriteLine(
+                                $"多尺度匹配命中: 缩放 {scale:P0}, 位置({match.X}, {match.Y}), 相似度 {match.Similarity:P}");
+                        }
+                    }
+                }
+
+                if (bestResult != null)
+                {
+                    return bestResult;
                 }
 
                 return MatchResult.NotFound;
