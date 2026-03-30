@@ -32,7 +32,7 @@
                             <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Medium"
                                        TextTrimming="CharacterEllipsis"/>
                             <TextBlock FontSize="11" Foreground="#888" Margin="0,2,0,0">
-                                <Run Text="{Binding Actions.Count, StringFormat='{}{0} 个动作'}"/>
+                                <Run Text="{Binding Actions.Count, Mode=OneWay, StringFormat='{}{0} 个动作'}"/>
                                 <Run Text=" | "/>
                                 <Run Text="{Binding UpdatedAt, StringFormat='{}{0:MM-dd HH:mm}'}"/>
                             </TextBlock>
