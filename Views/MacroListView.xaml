@@ -38,8 +38,18 @@
                             </TextBlock>
                         </StackPanel>
 
-                        <!-- 操作按钮 -->
+                        <!-- 操作按钮（仅选中时显示） -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
                             <Button Content="编辑" Width="48" Height="28" FontSize="12" Margin="0,0,4,0"
                                     Click="OnEditClick" Tag="{Binding}"/>
                             <Button Content="复制" Width="48" Height="28" FontSize="12" Margin="0,0,4,0"
