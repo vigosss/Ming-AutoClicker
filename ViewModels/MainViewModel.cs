@@ -241,7 +241,7 @@ namespace Ming_AutoClicker.ViewModels
             StatusMessage = "已停止执行";
         }
 
-        private void ToggleExecution()
+        public void ToggleExecution()
         {
             if (IsExecuting)
             {
