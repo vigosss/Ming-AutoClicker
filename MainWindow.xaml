@@ -16,12 +16,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 内容区域：Tab 切换 -->
+        <!-- 内容区域：Tab 切换（连点运行时禁用） -->
         <TabControl Grid.Row="0"
                     x:Name="MainTabControl"
                     Style="{StaticResource ModernTabControl}"
                     SelectedIndex="{Binding CurrentTabIndex, Mode=TwoWay}"
-                    Margin="16,12,16,8">
+                    Margin="16,12,16,8"
+                    IsEnabled="{Binding AutoClickViewModel.IsNotRunning}">
             <TabItem Style="{StaticResource ModernTabItem}" Header="🖱 鼠标连点">
                 <views:AutoClickView x:Name="AutoClickView"/>
             </TabItem>

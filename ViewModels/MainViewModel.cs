@@ -401,7 +401,11 @@ namespace Ming_AutoClicker.ViewModels
                     if (_currentTabIndex == 0)
                     {
                         ExecutionStatus = AutoClickViewModel.IsRunning ? "连点中" : "未运行";
-                        if (!AutoClickViewModel.IsRunning && AutoClickViewModel.ClickCount > 0)
+                        if (AutoClickViewModel.IsRunning)
+                        {
+                            StatusMessage = AutoClickViewModel.StatusText;
+                        }
+                        else if (AutoClickViewModel.ClickCount > 0)
                         {
                             StatusMessage = $"已停止，共点击 {AutoClickViewModel.ClickCount} 次";
                         }

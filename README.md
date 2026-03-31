@@ -2,6 +2,11 @@
 
 # 🎯 智点精灵 Ming-AutoClicker
 
+![License](https://img.shields.io/github/license/vigosss/AutoMouseClicker)
+![Stars](https://img.shields.io/github/stars/vigosss/AutoMouseClicker)
+![Language](https://img.shields.io/github/languages/top/vigosss/AutoMouseClicker)
+![.NET](https://img.shields.io/badge/.NET-6.0-blue)
+
 **智能鼠标自动化工具 | Smart Mouse Automation Tool**
 
 一款基于 WPF + OpenCV 的 Windows 桌面自动化工具，支持鼠标连点、宏录制编辑、图像识别找图点击，适用于游戏辅助、重复操作自动化、UI 测试等场景。

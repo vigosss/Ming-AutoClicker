@@ -13,7 +13,8 @@
                 CornerRadius="8"
                 Padding="24"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Top">
+                VerticalAlignment="Top"
+                IsEnabled="{Binding IsNotRunning}">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.06" Color="#000000"/>
             </Border.Effect>
