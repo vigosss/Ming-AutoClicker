@@ -140,6 +140,21 @@ namespace Ming_AutoClicker.Helpers
             return true;
         }
 
+        /// <summary>
+        /// 执行鼠标中键点击
+        /// </summary>
+        public static bool MiddleClick(int x, int y)
+        {
+            if (!SetCursorPos(x, y))
+            {
+                return false;
+            }
+
+            mouse_event((uint)MouseEventFlags.MiddleDown, 0, 0, 0, 0);
+            mouse_event((uint)MouseEventFlags.MiddleUp, 0, 0, 0, 0);
+            return true;
+        }
+
         #endregion
 
         #region 屏幕相关

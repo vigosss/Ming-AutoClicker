@@ -43,6 +43,9 @@ namespace Ming_AutoClicker.Views
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            // 确保窗口立即获得键盘焦点，ESC 可直接生效
+            Focus();
+
             try
             {
                 // 捕获当前屏幕（使用共享的 Win32Api 方法）

@@ -34,6 +34,7 @@ namespace Ming_AutoClicker
                 ImageMatchService = new ImageMatchService(ScreenCaptureService);
                 _macroExecutor = new MacroExecutor(ImageMatchService, ScreenCaptureService);
                 _hotkeyService = new HotkeyService();
+                var autoClickService = new AutoClickService();
 
                 // 创建主 ViewModel
                 MainViewModel = new MainViewModel(
@@ -41,7 +42,8 @@ namespace Ming_AutoClicker
                     ScreenCaptureService,
                     ImageMatchService,
                     _macroExecutor,
-                    _hotkeyService);
+                    _hotkeyService,
+                    autoClickService);
 
                 // 创建并显示主窗口
                 var mainWindow = new MainWindow

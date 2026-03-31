@@ -11,7 +11,7 @@
         </Grid.RowDefinitions>
 
         <!-- 标题 -->
-        <TextBlock Grid.Row="0" Text="📋 宏列表" Style="{StaticResource PageTitleText}" Margin="0,0,0,16"/>
+        <TextBlock Grid.Row="0" Text="📋 鼠标宏" Style="{StaticResource PageTitleText}" Margin="0,0,0,16"/>
 
         <!-- 宏列表 -->
         <ListBox Grid.Row="1"

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Ming_AutoClicker.Helpers;
 using Ming_AutoClicker.Models;
 using Ming_AutoClicker.ViewModels;
 using Ming_AutoClicker.Views;
@@ -14,7 +13,6 @@ namespace Ming_AutoClicker
     public partial class MainWindow : Window
     {
         private MainViewModel? _viewModel;
-        private MacroEditorView? _editorView;
         private PropertyChangedEventHandler? _propertyChangedHandler;
         private HwndSource? _hwndSource;
 
@@ -32,35 +30,64 @@ namespace Ming_AutoClicker
             _viewModel = DataContext as MainViewModel;
             if (_viewModel == null) return;
 
+            // 设置 AutoClickView 的 DataContext
+            AutoClickView.DataContext = _viewModel.AutoClickViewModel;
+
             // 监听执行状态变化，更新状态指示灯颜色
             _propertyChangedHandler = (s, args) =>
             {
-                if (args.PropertyName == nameof(MainViewModel.IsExecuting))
+                if (args.PropertyName == nameof(MainViewModel.IsExecuting) ||
+                    args.PropertyName == nameof(MainViewModel.CurrentTabIndex))
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        StatusIndicator.Fill = _viewModel.IsExecuting
-                            ? new SolidColorBrush(Colors.LimeGreen)
-                            : new SolidColorBrush(Colors.Gray);
-                    });
+                    Dispatcher.Invoke(() => UpdateStatusIndicator());
                 }
             };
             _viewModel.PropertyChanged += _propertyChangedHandler;
 
+            // 监听 AutoClickViewModel 的运行状态
+            _viewModel.AutoClickViewModel.PropertyChanged += (s, args) =>
+            {
+                if (args.PropertyName == nameof(AutoClickViewModel.IsRunning))
+                {
+                    Dispatcher.Invoke(() => UpdateStatusIndicator());
+                }
+            };
+
             // 初始化宏列表视图事件
             MacroListView.RequestEdit += OnRequestEdit;
 
-            // 订阅 ViewModel 的编辑请求事件（支持键盘快捷键等触发）
+            // 订阅 ViewModel 的编辑请求事件
             _viewModel.EditRequested += OnRequestEdit;
 
-            // 注册全局热键（窗口句柄在 SourceInitialized 时已可用）
+            // 注册全局热键
             var hwnd = new WindowInteropHelper(this).Handle;
             _viewModel.RegisterHotkey(hwnd);
         }
 
+        /// <summary>
+        /// 更新状态指示灯颜色
+        /// </summary>
+        private void UpdateStatusIndicator()
+        {
+            if (_viewModel == null) return;
+
+            bool isRunning;
+            if (_viewModel.CurrentTabIndex == 0)
+            {
+                isRunning = _viewModel.AutoClickViewModel.IsRunning;
+            }
+            else
+            {
+                isRunning = _viewModel.IsExecuting;
+            }
+
+            StatusIndicator.Fill = isRunning
+                ? FindResource("SuccessBrush") as SolidColorBrush ?? new SolidColorBrush(Colors.LimeGreen)
+                : FindResource("TextDisabledBrush") as SolidColorBrush ?? new SolidColorBrush(Colors.Gray);
+        }
+
         private void OnSourceInitialized(object? sender, EventArgs e)
         {
-            // 挂钩 WndProc 以处理全局热键消息
             _hwndSource = PresentationSource.FromVisual(this) as HwndSource;
             _hwndSource?.AddHook(WndProc);
         }
@@ -70,15 +97,10 @@ namespace Ming_AutoClicker
         /// </summary>
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == Win32Api.WM_HOTKEY)
+            if (msg == Helpers.Win32Api.WM_HOTKEY)
             {
-                // 直接调用 HotkeyService 的消息处理（如果已注册）
-                // 通过 ViewModel 间接访问 HotkeyService
                 if (_viewModel != null)
                 {
-                    // HotkeyService.HandleMessage 在 HotkeyService 内部会触发热键事件
-                    // 但 MainWindow 没有直接持有 HotkeyService 引用
-                    // 所以我们直接触发 ViewModel 的 ToggleExecution
                     _viewModel.ToggleExecution();
                     handled = true;
                 }
@@ -112,7 +134,7 @@ namespace Ming_AutoClicker
         }
 
         /// <summary>
-        /// 切换到编辑器视图
+        /// 切换到编辑器视图（以弹窗方式）
         /// </summary>
         private void OnRequestEdit(object? sender, MacroProfile macro)
         {
@@ -121,85 +143,82 @@ namespace Ming_AutoClicker
             // 深拷贝，避免编辑时污染原始数据
             var macroClone = macro.DeepClone();
 
-            // 创建编辑器 ViewModel（复用全局服务单例）
+            // 创建编辑器 ViewModel
             var editorViewModel = new MacroEditorViewModel(
                 App.StorageService!,
                 App.ScreenCaptureService!,
                 App.ImageMatchService!,
                 macroClone);
 
-            // 创建编辑器视图
-            _editorView = new MacroEditorView
+            // 创建编辑器弹窗
+            var editorWindow = new Window
+            {
+                Title = $"编辑宏 - {macro.Name}",
+                Width = 800,
+                Height = 600,
+                MinWidth = 700,
+                MinHeight = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.CanResize,
+                Background = FindResource("BackgroundBrush") as Brush ?? Brushes.White
+            };
+
+            var editorView = new MacroEditorView
             {
                 DataContext = editorViewModel
             };
 
-            _editorView.RequestClose += OnEditorRequestClose;
-            _editorView.RequestSave += OnEditorRequestSave;
+            editorWindow.Content = editorView;
 
-            // 切换内容
-            ContentArea.Content = _editorView;
-        }
-
-        /// <summary>
-        /// 编辑器请求保存，将编辑结果写回原始数据
-        /// </summary>
-        private void OnEditorRequestSave(object? sender, MacroProfile editedMacro)
-        {
-            if (_viewModel == null) return;
-
-            // 找到原始宏并更新其数据
-            var original = _viewModel.Macros.FirstOrDefault(m => m.Id == editedMacro.Id);
-            if (original != null)
+            // 处理保存请求
+            editorView.RequestSave += (s, editedMacro) =>
             {
-                original.Name = editedMacro.Name;
-                original.LoopEnabled = editedMacro.LoopEnabled;
-                original.LoopCount = editedMacro.LoopCount;
-                original.LoopIntervalMs = editedMacro.LoopIntervalMs;
-                original.UpdatedAt = editedMacro.UpdatedAt;
-
-                original.Actions.Clear();
-                foreach (var action in editedMacro.Actions)
+                var original = _viewModel.Macros.FirstOrDefault(m => m.Id == editedMacro.Id);
+                if (original != null)
                 {
-                    switch (action)
+                    original.Name = editedMacro.Name;
+                    original.LoopEnabled = editedMacro.LoopEnabled;
+                    original.LoopCount = editedMacro.LoopCount;
+                    original.LoopIntervalMs = editedMacro.LoopIntervalMs;
+                    original.UpdatedAt = editedMacro.UpdatedAt;
+
+                    original.Actions.Clear();
+                    foreach (var action in editedMacro.Actions)
                     {
-                        case FindImageAction fia:
-                            original.Actions.Add(fia.Clone());
-                            break;
-                        case WaitAction wa:
-                            original.Actions.Add(wa.Clone());
-                            break;
+                        switch (action)
+                        {
+                            case FindImageAction fia:
+                                original.Actions.Add(fia.Clone());
+                                break;
+                            case WaitAction wa:
+                                original.Actions.Add(wa.Clone());
+                                break;
+                        }
                     }
                 }
-            }
 
-            _viewModel.SaveAll();
-        }
+                _viewModel.SaveAll();
+                editorWindow.Close();
+            };
 
-        /// <summary>
-        /// 编辑器请求关闭，切回列表视图
-        /// </summary>
-        private void OnEditorRequestClose(object? sender, EventArgs e)
-        {
-            if (_editorView != null)
+            // 处理关闭请求
+            editorView.RequestClose += (s, e) =>
             {
-                _editorView.RequestClose -= OnEditorRequestClose;
-                _editorView.RequestSave -= OnEditorRequestSave;
+                editorWindow.Close();
+            };
 
-                // 释放 ViewModel
-                if (_editorView.DataContext is IDisposable disposable)
+            // 窗口关闭时清理
+            editorWindow.Closed += (s, e) =>
+            {
+                if (editorView.DataContext is IDisposable disposable)
                 {
                     disposable.Dispose();
                 }
+                _viewModel.LoadMacros();
+            };
 
-                _editorView = null;
-            }
-
-            // 切回列表视图
-            ContentArea.Content = MacroListView;
-
-            // 刷新宏列表
-            _viewModel?.LoadMacros();
+            editorWindow.ShowDialog();
         }
     }
 }

@@ -10,6 +10,7 @@
                 <ResourceDictionary Source="Styles/Inputs.xaml"/>
                 <ResourceDictionary Source="Styles/Lists.xaml"/>
                 <ResourceDictionary Source="Styles/ScrollBars.xaml"/>
+                <ResourceDictionary Source="Styles/Tabs.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

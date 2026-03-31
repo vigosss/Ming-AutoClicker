@@ -16,12 +16,19 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 内容区域 -->
-        <ContentControl x:Name="ContentArea" Grid.Row="0" Margin="16,12,16,8">
-            <ContentControl.Content>
+        <!-- 内容区域：Tab 切换 -->
+        <TabControl Grid.Row="0"
+                    x:Name="MainTabControl"
+                    Style="{StaticResource ModernTabControl}"
+                    SelectedIndex="{Binding CurrentTabIndex, Mode=TwoWay}"
+                    Margin="16,12,16,8">
+            <TabItem Style="{StaticResource ModernTabItem}" Header="🖱 鼠标连点">
+                <views:AutoClickView x:Name="AutoClickView"/>
+            </TabItem>
+            <TabItem Style="{StaticResource ModernTabItem}" Header="📋 鼠标宏">
                 <views:MacroListView x:Name="MacroListView"/>
-            </ContentControl.Content>
-        </ContentControl>
+            </TabItem>
+        </TabControl>
 
         <!-- 底部状态栏 -->
         <Border Grid.Row="1"

@@ -24,8 +24,29 @@ namespace Ming_AutoClicker.ViewModels
         private bool _isExecuting;
         private string _statusMessage = "就绪";
         private string _executionStatus = "未运行";
+        private int _currentTabIndex;
 
         #region 属性
+
+        /// <summary>
+        /// 鼠标连点 ViewModel
+        /// </summary>
+        public AutoClickViewModel AutoClickViewModel { get; }
+
+        /// <summary>
+        /// 当前选中的 Tab 索引（0=鼠标连点, 1=鼠标宏）
+        /// </summary>
+        public int CurrentTabIndex
+        {
+            get => _currentTabIndex;
+            set
+            {
+                if (SetProperty(ref _currentTabIndex, value))
+                {
+                    UpdateExecutionStatus();
+                }
+            }
+        }
 
         /// <summary>
         /// 宏配置列表
@@ -117,7 +138,8 @@ namespace Ming_AutoClicker.ViewModels
             ScreenCaptureService screenCaptureService,
             ImageMatchService imageMatchService,
             MacroExecutor macroExecutor,
-            HotkeyService hotkeyService)
+            HotkeyService hotkeyService,
+            AutoClickService autoClickService)
         {
             _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
             _screenCaptureService = screenCaptureService ?? throw new ArgumentNullException(nameof(screenCaptureService));
@@ -126,6 +148,12 @@ namespace Ming_AutoClicker.ViewModels
             _hotkeyService = hotkeyService ?? throw new ArgumentNullException(nameof(hotkeyService));
 
             Macros = new ObservableCollection<MacroProfile>();
+
+            // 初始化鼠标连点 ViewModel
+            AutoClickViewModel = new AutoClickViewModel(autoClickService ?? throw new ArgumentNullException(nameof(autoClickService)));
+
+            // 默认选中第一个 Tab（鼠标连点）
+            _currentTabIndex = 0;
 
             // 初始化命令
             CreateMacroCommand = new RelayCommand(_ => CreateMacro(), _ => !IsExecuting);
@@ -188,7 +216,6 @@ namespace Ming_AutoClicker.ViewModels
 
             if (ShowConfirm($"确定要删除宏 \"{name}\" 吗？", "确认删除"))
             {
-                // 注意：不删除关联的截图文件，因为复制的宏可能共享同一图片路径
                 Macros.Remove(macroToDelete);
                 _storageService.Delete(macroToDelete.Id);
                 StatusMessage = $"已删除: {name}";
@@ -201,7 +228,6 @@ namespace Ming_AutoClicker.ViewModels
         {
             if (SelectedMacro == null) return;
 
-            // 使用 DeepClone 复制，然后修改名称和时间
             var duplicated = SelectedMacro.DeepClone();
             duplicated.Id = Guid.NewGuid().ToString();
             duplicated.Name = $"{SelectedMacro.Name} (副本)";
@@ -244,16 +270,36 @@ namespace Ming_AutoClicker.ViewModels
 
         public void ToggleExecution()
         {
-            if (IsExecuting)
+            if (_currentTabIndex == 0)
             {
-                StopMacro();
+                // 鼠标连点 Tab：转发给 AutoClickViewModel
+                AutoClickViewModel.Toggle();
             }
             else
             {
-                if (SelectedMacro != null && SelectedMacro.Actions.Count > 0)
+                // 鼠标宏 Tab：原有逻辑
+                if (IsExecuting)
                 {
-                    StartMacro();
+                    StopMacro();
                 }
+                else
+                {
+                    if (SelectedMacro != null && SelectedMacro.Actions.Count > 0)
+                    {
+                        StartMacro();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 根据当前 Tab 更新执行状态显示
+        /// </summary>
+        private void UpdateExecutionStatus()
+        {
+            if (_currentTabIndex == 0)
+            {
+                ExecutionStatus = AutoClickViewModel.IsRunning ? "连点中" : "未运行";
             }
         }
 
@@ -353,6 +399,7 @@ namespace Ming_AutoClicker.ViewModels
         {
             if (disposing)
             {
+                AutoClickViewModel.Dispose();
                 _macroExecutor.ActionExecuted -= OnActionExecuted;
                 _macroExecutor.ExecutionCompleted -= OnExecutionCompleted;
                 _macroExecutor.StateChanged -= OnExecutionStateChanged;
