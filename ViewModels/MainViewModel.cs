@@ -25,6 +25,7 @@ namespace Ming_AutoClicker.ViewModels
         private string _statusMessage = "就绪";
         private string _executionStatus = "未运行";
         private int _currentTabIndex;
+        private int _autoClickCount;
 
         #region 属性
 
@@ -113,6 +114,15 @@ namespace Ming_AutoClicker.ViewModels
         public MacroExecutor MacroExecutor => _macroExecutor;
 
         /// <summary>
+        /// 鼠标连点次数（供底部状态栏显示）
+        /// </summary>
+        public int AutoClickCount
+        {
+            get => _autoClickCount;
+            set => SetProperty(ref _autoClickCount, value);
+        }
+
+        /// <summary>
         /// 请求编辑宏事件（由 MainWindow 订阅以切换到编辑器视图）
         /// </summary>
         public event EventHandler<MacroProfile>? EditRequested;
@@ -151,6 +161,9 @@ namespace Ming_AutoClicker.ViewModels
 
             // 初始化鼠标连点 ViewModel
             AutoClickViewModel = new AutoClickViewModel(autoClickService ?? throw new ArgumentNullException(nameof(autoClickService)));
+
+            // 订阅鼠标连点状态变化
+            AutoClickViewModel.PropertyChanged += OnAutoClickViewModelPropertyChanged;
 
             // 默认选中第一个 Tab（鼠标连点）
             _currentTabIndex = 0;
@@ -379,6 +392,31 @@ namespace Ming_AutoClicker.ViewModels
             OnUIThread(() => ToggleExecution());
         }
 
+        private void OnAutoClickViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(AutoClickViewModel.IsRunning))
+            {
+                OnUIThread(() =>
+                {
+                    if (_currentTabIndex == 0)
+                    {
+                        ExecutionStatus = AutoClickViewModel.IsRunning ? "连点中" : "未运行";
+                        if (!AutoClickViewModel.IsRunning && AutoClickViewModel.ClickCount > 0)
+                        {
+                            StatusMessage = $"已停止，共点击 {AutoClickViewModel.ClickCount} 次";
+                        }
+                    }
+                });
+            }
+            else if (e.PropertyName == nameof(AutoClickViewModel.ClickCount))
+            {
+                OnUIThread(() =>
+                {
+                    AutoClickCount = AutoClickViewModel.ClickCount;
+                });
+            }
+        }
+
         #endregion
 
         #region 热键注册
@@ -399,6 +437,7 @@ namespace Ming_AutoClicker.ViewModels
         {
             if (disposing)
             {
+                AutoClickViewModel.PropertyChanged -= OnAutoClickViewModelPropertyChanged;
                 AutoClickViewModel.Dispose();
                 _macroExecutor.ActionExecuted -= OnActionExecuted;
                 _macroExecutor.ExecutionCompleted -= OnExecutionCompleted;

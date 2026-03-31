@@ -3,16 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 标题 -->
-        <TextBlock Grid.Row="0" Text="🖱 鼠标连点" Style="{StaticResource PageTitleText}" Margin="0,0,0,16"/>
-
         <!-- 设置区域 -->
-        <Border Grid.Row="1"
+        <Border Grid.Row="0"
                 Background="{StaticResource SurfaceBrush}"
                 CornerRadius="8"
                 Padding="24"
@@ -66,64 +62,33 @@
                 <!-- 分隔线 -->
                 <Border Background="{StaticResource BorderBrush}" Height="1" Margin="0,0,0,24"/>
 
-                <!-- 状态信息 -->
-                <Grid Margin="0,0,0,24">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="状态" Style="{StaticResource LabelText}"
-                               VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding RunningStatusText}"
-                               FontSize="13" FontWeight="Medium"
-                               VerticalAlignment="Center" Margin="0,0,16,0">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-
-                    <TextBlock Grid.Column="3"
-                               Foreground="{StaticResource TextSecondaryBrush}"
-                               FontSize="13" VerticalAlignment="Center">
-                        <Run Text="已点击 "/><Run Text="{Binding ClickCount, Mode=OneWay}"/><Run Text=" 次"/>
-                    </TextBlock>
-                </Grid>
-
-                <!-- 操作按钮 -->
-                <Button HorizontalAlignment="Left"
-                        MinWidth="160" Height="40"
-                        FontSize="14" FontWeight="Medium"
-                        Command="{Binding ToggleCommand}">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource BaseButton}">
-                            <Setter Property="Content" Value="▶ F8 开始连点"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                    <Setter Property="Content" Value="■ F8 停止连点"/>
-                                    <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource TextOnPrimaryBrush}"/>
-                                    <Setter Property="BorderThickness" Value="0"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                <!-- 快捷键提示 -->
+                <Border Background="{StaticResource BorderLightBrush}"
+                        CornerRadius="6"
+                        Padding="16,10"
+                        HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{StaticResource SurfaceBrush}"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="0,0,8,0">
+                            <TextBlock Text="F8"
+                                       FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock VerticalAlignment="Center"
+                                   FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <Run Text="{Binding HotkeyHintText, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </Border>
 
         <!-- 底部提示 -->
-        <TextBlock Grid.Row="2"
+        <TextBlock Grid.Row="1"
                    Text="{Binding StatusText}"
                    Style="{StaticResource StatusText}"
                    Margin="0,8,0,0"/>

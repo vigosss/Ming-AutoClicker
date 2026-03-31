@@ -4,17 +4,13 @@
              xmlns:models="clr-namespace:Ming_AutoClicker.Models">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 标题 -->
-        <TextBlock Grid.Row="0" Text="📋 鼠标宏" Style="{StaticResource PageTitleText}" Margin="0,0,0,16"/>
-
         <!-- 宏列表 -->
-        <ListBox Grid.Row="1"
+        <ListBox Grid.Row="0"
                  x:Name="MacroListBox"
                  ItemsSource="{Binding Macros}"
                  SelectedItem="{Binding SelectedMacro}"
@@ -68,7 +64,7 @@
         </ListBox>
 
         <!-- 创建新宏按钮 -->
-        <Button Grid.Row="2"
+        <Button Grid.Row="1"
                 Content="＋ 创建新宏"
                 Style="{StaticResource PrimaryButton}"
                 Height="38"
@@ -76,7 +72,7 @@
                 Command="{Binding CreateMacroCommand}"/>
 
         <!-- 执行控制 -->
-        <Grid Grid.Row="3" Margin="0,16,0,0">
+        <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>

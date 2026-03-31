@@ -43,6 +43,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- 执行状态指示 -->
@@ -65,8 +66,28 @@
                            TextTrimming="CharacterEllipsis"
                            VerticalAlignment="Center"/>
 
+                <!-- 连点次数（仅鼠标连点 Tab 显示） -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,12,0"
+                            VerticalAlignment="Center">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentTabIndex}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center">
+                        <Run Text="已点击 "/><Run Text="{Binding AutoClickCount, Mode=OneWay}"/><Run Text=" 次"/>
+                    </TextBlock>
+                </StackPanel>
+
                 <!-- F8 提示 -->
-                <Border Grid.Column="3"
+                <Border Grid.Column="4"
                         Background="{StaticResource BorderLightBrush}"
                         CornerRadius="4"
                         Padding="8,3">

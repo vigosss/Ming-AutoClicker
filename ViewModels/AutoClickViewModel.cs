@@ -97,7 +97,7 @@ namespace Ming_AutoClicker.ViewModels
                 if (SetProperty(ref _isRunning, value))
                 {
                     OnPropertyChanged(nameof(IsNotRunning));
-                    OnPropertyChanged(nameof(RunningStatusText));
+                    OnPropertyChanged(nameof(HotkeyHintText));
                     CommandManager.InvalidateRequerySuggested();
                 }
             }
@@ -109,9 +109,9 @@ namespace Ming_AutoClicker.ViewModels
         public bool IsNotRunning => !_isRunning;
 
         /// <summary>
-        /// 运行状态文本
+        /// 快捷键提示文本
         /// </summary>
-        public string RunningStatusText => _isRunning ? "● 连点中" : "● 已停止";
+        public string HotkeyHintText => _isRunning ? "停止连点" : "开始连点";
 
         /// <summary>
         /// 状态文本
