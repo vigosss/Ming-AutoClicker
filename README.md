@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/github/license/vigosss/AutoMouseClicker)
 ![Stars](https://img.shields.io/github/stars/vigosss/AutoMouseClicker)
 ![Language](https://img.shields.io/github/languages/top/vigosss/AutoMouseClicker)
-![.NET](https://img.shields.io/badge/.NET-6.0-blue)
+![.NET](https://img.shields.io/badge/.NET-8.0-blue)
 
 **智能鼠标自动化工具 | Smart Mouse Automation Tool**
 

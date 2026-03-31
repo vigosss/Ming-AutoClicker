@@ -167,9 +167,10 @@ namespace Ming_AutoClicker.ViewModels
 
         private void Start()
         {
-            if (_autoClickService.Start(SelectedButton, IntervalMs))
+            StatusText = $"已开始连点 ({GetButtonName(SelectedButton)}, {IntervalMs}ms)";
+            if (!_autoClickService.Start(SelectedButton, IntervalMs))
             {
-                StatusText = $"已开始连点 ({GetButtonName(SelectedButton)}, {IntervalMs}ms)";
+                StatusText = "启动失败";
             }
         }
 

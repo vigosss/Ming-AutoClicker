@@ -93,7 +93,7 @@ namespace Ming_AutoClicker
         }
 
         /// <summary>
-        /// 窗口消息处理 - 转发热键消息给 HotkeyService
+        /// 窗口消息处理 - 转发热键消息给 ViewModel
         /// </summary>
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
@@ -101,7 +101,7 @@ namespace Ming_AutoClicker
             {
                 if (_viewModel != null)
                 {
-                    _viewModel.ToggleExecution();
+                    _viewModel.HandleHotkeyMessage(msg, wParam, lParam);
                     handled = true;
                 }
             }

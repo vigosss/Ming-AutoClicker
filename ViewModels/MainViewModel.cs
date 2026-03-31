@@ -435,6 +435,15 @@ namespace Ming_AutoClicker.ViewModels
             _hotkeyService.Unregister();
         }
 
+        /// <summary>
+        /// 处理热键窗口消息（由 MainWindow.WndProc 调用）
+        /// 通过 HotkeyService 统一处理，避免重复触发
+        /// </summary>
+        public void HandleHotkeyMessage(int message, IntPtr wParam, IntPtr lParam)
+        {
+            _hotkeyService.HandleMessage(message, wParam, lParam);
+        }
+
         #endregion
 
         protected override void Dispose(bool disposing)
