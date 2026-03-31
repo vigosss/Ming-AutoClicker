@@ -189,6 +189,9 @@ namespace Ming_AutoClicker.ViewModels
 
             // 加载宏列表
             LoadMacros();
+
+            // 初始化执行状态显示
+            UpdateExecutionStatus();
         }
 
         #region 命令实现
