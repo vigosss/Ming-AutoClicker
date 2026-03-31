@@ -160,7 +160,7 @@
 
                                 <!-- 截图操作按钮 -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                    <Button Content="📷 截图" Style="{StaticResource PrimaryButton}" Width="68" Height="32"
+                                    <Button Content="截图" Style="{StaticResource PrimaryButton}" Width="68" Height="32"
                                             Command="{Binding CaptureScreenshotCommand}"/>
                                     <Button Content="清除" Style="{StaticResource BaseButton}" Width="56" Height="32" Margin="6,0,0,0"
                                             Command="{Binding ClearImageCommand}"/>
