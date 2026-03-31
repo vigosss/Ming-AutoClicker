@@ -168,12 +168,53 @@
                                             Command="{Binding TestMatchCommand}"/>
                                 </StackPanel>
 
-                                <!-- 图像路径 -->
-                                <TextBlock Text="图像路径" Style="{StaticResource LabelText}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding ImagePath}" Height="32"
-                                         Style="{StaticResource ModernTextBox}"
-                                         IsReadOnly="True"
-                                         ToolTip="{Binding ImagePath}" Margin="0,0,0,12"/>
+                                <!-- 截图预览 -->
+                                <TextBlock Text="截图预览" Style="{StaticResource LabelText}" Margin="0,0,0,4"/>
+                                <Border Background="{StaticResource BackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="4"
+                                        MaxHeight="160"
+                                        Margin="0,0,0,12"
+                                        HorizontalAlignment="Left"
+                                        ToolTip="{Binding ImagePath}">
+                                    <Grid>
+                                        <!-- 有截图时显示图片 -->
+                                        <Image Source="{Binding ScreenshotPreview}"
+                                               Stretch="Uniform"
+                                               MaxHeight="150"
+                                               RenderOptions.BitmapScalingMode="HighQuality">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasScreenshot}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <!-- 无截图时显示占位文字 -->
+                                        <TextBlock Text="点击上方「截图」按钮捕获图像"
+                                                   Style="{StaticResource CaptionText}"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Margin="16,12">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasScreenshot}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
 
                                 <!-- 匹配度 -->
                                 <Grid Margin="0,0,0,12">

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -78,6 +79,8 @@ namespace Ming_AutoClicker.ViewModels
                     OnPropertyChanged(nameof(CanMoveDown));
                     // 通知属性面板刷新所有动作相关属性
                     OnPropertyChanged(nameof(ImagePath));
+                    OnPropertyChanged(nameof(ScreenshotPreview));
+                    OnPropertyChanged(nameof(HasScreenshot));
                     OnPropertyChanged(nameof(MatchThreshold));
                     OnPropertyChanged(nameof(WaitUntilFound));
                     OnPropertyChanged(nameof(Operation));
@@ -208,9 +211,52 @@ namespace Ming_AutoClicker.ViewModels
                     FindImageAction.ImagePath = value;
                     _macro.UpdatedAt = DateTime.Now;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(ScreenshotPreview));
+                    OnPropertyChanged(nameof(HasScreenshot));
                 }
             }
         }
+
+        /// <summary>
+        /// 截图预览图像
+        /// </summary>
+        public BitmapImage? ScreenshotPreview
+        {
+            get
+            {
+                var path = ImagePath;
+                if (string.IsNullOrEmpty(path)) return null;
+
+                try
+                {
+                    // 将相对路径转换为绝对路径
+                    if (!Path.IsPathRooted(path))
+                    {
+                        path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "screenshots", path);
+                    }
+
+                    if (!File.Exists(path)) return null;
+
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                    bitmap.DecodePixelWidth = 300; // 限制解码宽度，节省内存
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad; // 立即加载，不锁定文件
+                    bitmap.EndInit();
+                    bitmap.Freeze(); // 冻结以便跨线程使用
+                    return bitmap;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 是否有截图
+        /// </summary>
+        public bool HasScreenshot => !string.IsNullOrEmpty(ImagePath);
 
         /// <summary>
         /// 匹配阈值
