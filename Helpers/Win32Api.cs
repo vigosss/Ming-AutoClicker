@@ -142,6 +142,99 @@ namespace Ming_AutoClicker.Helpers
 
         #endregion
 
+        #region 屏幕相关
+
+        /// <summary>
+        /// 获取系统度量值
+        /// </summary>
+        [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int nIndex);
+
+        /// <summary>主屏幕宽度</summary>
+        public const int SM_CXSCREEN = 0;
+        /// <summary>主屏幕高度</summary>
+        public const int SM_CYSCREEN = 1;
+        /// <summary>虚拟屏幕左上角 X</summary>
+        public const int SM_XVIRTUALSCREEN = 76;
+        /// <summary>虚拟屏幕左上角 Y</summary>
+        public const int SM_YVIRTUALSCREEN = 77;
+        /// <summary>虚拟屏幕宽度</summary>
+        public const int SM_CXVIRTUALSCREEN = 78;
+        /// <summary>虚拟屏幕高度</summary>
+        public const int SM_CYVIRTUALSCREEN = 79;
+
+        /// <summary>
+        /// 获取主屏幕尺寸
+        /// </summary>
+        public static System.Drawing.Size GetMainScreenSize()
+        {
+            return new System.Drawing.Size(
+                GetSystemMetrics(SM_CXSCREEN),
+                GetSystemMetrics(SM_CYSCREEN));
+        }
+
+        /// <summary>
+        /// 获取虚拟屏幕（多显示器）的区域和尺寸
+        /// </summary>
+        public static (int x, int y, int width, int height) GetVirtualScreenBounds()
+        {
+            int x = GetSystemMetrics(SM_XVIRTUALSCREEN);
+            int y = GetSystemMetrics(SM_YVIRTUALSCREEN);
+            int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+            int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+            // 如果虚拟屏幕尺寸异常，回退到主屏幕
+            if (w <= 0 || h <= 0)
+            {
+                w = GetSystemMetrics(SM_CXSCREEN);
+                h = GetSystemMetrics(SM_CYSCREEN);
+                x = 0;
+                y = 0;
+            }
+
+            return (x, y, w, h);
+        }
+
+        /// <summary>
+        /// 从屏幕捕获 Bitmap（虚拟屏幕，支持多显示器）
+        /// </summary>
+        public static System.Drawing.Bitmap CaptureVirtualScreen()
+        {
+            var (x, y, w, h) = GetVirtualScreenBounds();
+            var bitmap = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            using (var g = System.Drawing.Graphics.FromImage(bitmap))
+            {
+                g.CopyFromScreen(x, y, 0, 0, new System.Drawing.Size(w, h));
+            }
+            return bitmap;
+        }
+
+        /// <summary>
+        /// 从屏幕捕获 Bitmap（仅主屏幕）
+        /// </summary>
+        public static System.Drawing.Bitmap CaptureMainScreen()
+        {
+            var size = GetMainScreenSize();
+            var bitmap = new System.Drawing.Bitmap(size.Width, size.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            using (var g = System.Drawing.Graphics.FromImage(bitmap))
+            {
+                g.CopyFromScreen(0, 0, 0, 0, size);
+            }
+            return bitmap;
+        }
+
+        #endregion
+
+        #region GDI 相关
+
+        /// <summary>
+        /// 删除 GDI 对象
+        /// </summary>
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
+
+        #endregion
+
         #region 窗口相关
 
         /// <summary>

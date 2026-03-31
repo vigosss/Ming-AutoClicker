@@ -1,12 +1,12 @@
 using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Ming_AutoClicker.Helpers;
 
 namespace Ming_AutoClicker.Views
 {
@@ -15,22 +15,6 @@ namespace Ming_AutoClicker.Views
     /// </summary>
     public partial class RegionSelectWindow : Window
     {
-        #region Win32 API
-
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(int nIndex);
-
-        private const int SM_CXSCREEN = 0;
-        private const int SM_CYSCREEN = 1;
-        private const int SM_XVIRTUALSCREEN = 76;
-        private const int SM_YVIRTUALSCREEN = 77;
-        private const int SM_CXVIRTUALSCREEN = 78;
-        private const int SM_CYVIRTUALSCREEN = 79;
-
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
-
-        #endregion
 
         #region 状态枚举
 
@@ -105,28 +89,13 @@ namespace Ming_AutoClicker.Views
         {
             InitializeComponent();
 
-            // 获取虚拟屏幕尺寸（支持多显示器）
-            _screenWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-            _screenHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-            int virtualX = GetSystemMetrics(SM_XVIRTUALSCREEN);
-            int virtualY = GetSystemMetrics(SM_YVIRTUALSCREEN);
+            // 获取虚拟屏幕尺寸（支持多显示器），使用共享的 Win32Api 方法
+            var (_, _, screenW, screenH) = Win32Api.GetVirtualScreenBounds();
+            _screenWidth = screenW;
+            _screenHeight = screenH;
 
-            // 如果虚拟屏幕尺寸异常，使用主屏幕
-            if (_screenWidth <= 0 || _screenHeight <= 0)
-            {
-                _screenWidth = GetSystemMetrics(SM_CXSCREEN);
-                _screenHeight = GetSystemMetrics(SM_CYSCREEN);
-                virtualX = 0;
-                virtualY = 0;
-            }
-
-            // 捕获当前屏幕
-            _screenBitmap = new System.Drawing.Bitmap(_screenWidth, _screenHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-            using (var g = Graphics.FromImage(_screenBitmap))
-            {
-                g.CopyFromScreen(virtualX, virtualY, 0, 0,
-                    new System.Drawing.Size(_screenWidth, _screenHeight));
-            }
+            // 捕获当前屏幕，使用共享的 Win32Api 方法
+            _screenBitmap = Win32Api.CaptureVirtualScreen();
 
             // 初始化手柄数组
             _handles = new[] { HandleTL, HandleT, HandleTR, HandleL, HandleR, HandleBL, HandleB, HandleBR };
@@ -730,7 +699,7 @@ namespace Ming_AutoClicker.Views
             }
             finally
             {
-                DeleteObject(hBitmap);
+                Win32Api.DeleteObject(hBitmap);
             }
         }
 

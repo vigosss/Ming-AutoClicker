@@ -641,19 +641,41 @@ namespace Ming_AutoClicker.ViewModels
 
             try
             {
+                // 最小化主窗口，露出屏幕内容以便截图
+                var mainWindow = Application.Current.MainWindow;
+                mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Minimized);
+                System.Threading.Thread.Sleep(200);
+
                 var result = _imageMatchService.TestMatch(ImagePath, MatchThreshold);
+
                 if (result.Found)
                 {
-                    ShowMessage($"匹配成功!\n位置: ({result.X}, {result.Y})\n相似度: {result.Similarity:P}", "测试结果");
+                    // 找到匹配：用全屏覆盖窗口可视化展示匹配位置
+                    var matchWindow = new MatchResultWindow(result);
+                    matchWindow.Loaded += (_, _) =>
+                    {
+                        StatusMessage = $"匹配成功! 位置: ({result.X}, {result.Y}) 相似度: {result.Similarity:P}";
+                    };
+                    matchWindow.Closed += (_, _) =>
+                    {
+                        // 恢复主窗口
+                        mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Normal);
+                    };
+                    matchWindow.ShowDialog();
                 }
                 else
                 {
+                    // 未找到匹配：恢复窗口并弹窗提示
+                    mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Normal);
                     ShowMessage($"未找到匹配\n请尝试降低阈值或重新截图", "测试结果", MessageBoxImage.Warning);
                 }
             }
             catch (Exception ex)
             {
                 ShowMessage($"测试失败: {ex.Message}", "错误", MessageBoxImage.Error);
+                // 确保主窗口恢复
+                var mainWindow = Application.Current.MainWindow;
+                mainWindow?.Dispatcher.Invoke(() => mainWindow.WindowState = WindowState.Normal);
             }
         }
 
