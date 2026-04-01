@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -19,6 +20,13 @@ namespace Ming_AutoClicker
         public MainWindow()
         {
             InitializeComponent();
+
+            // 显示当前版本号
+            var versionString = Assembly.GetEntryAssembly()?
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion ?? "0.0.0";
+            var cleanVersion = versionString.Split('+', '-')[0];
+            VersionText.Text = $"v{cleanVersion}";
 
             Loaded += OnLoaded;
             SourceInitialized += OnSourceInitialized;

@@ -36,7 +36,7 @@ namespace Ming_AutoClicker.Views
         {
             // 版本号
             CurrentVersionRun.Text = $"v{_updateInfo.CurrentVersion}";
-            NewVersionRun.Text = $"v{_updateInfo.LatestVersionTag}";
+            NewVersionRun.Text = _updateInfo.LatestVersionTag;
 
             // 发布时间
             PublishDateText.Text = _updateInfo.PublishedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm");

@@ -46,6 +46,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- 执行状态指示 -->
@@ -98,6 +99,14 @@
                                Foreground="{StaticResource TextSecondaryBrush}"
                                VerticalAlignment="Center"/>
                 </Border>
+
+                <!-- 版本号 -->
+                <TextBlock Grid.Column="5"
+                           x:Name="VersionText"
+                           FontSize="11"
+                           Foreground="{StaticResource TextDisabledBrush}"
+                           VerticalAlignment="Center"
+                           Margin="12,0,0,0"/>
             </Grid>
         </Border>
     </Grid>
