@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Ming_AutoClicker.Helpers;
@@ -395,7 +396,7 @@ namespace Ming_AutoClicker.ViewModels
                     MouseClickAction.X = value;
                     _macro.UpdatedAt = DateTime.Now;
                     OnPropertyChanged();
-                    System.ComponentModel.CollectionViewSource.GetDefaultView(Actions).Refresh();
+                    CollectionViewSource.GetDefaultView(Actions).Refresh();
                 }
             }
         }
@@ -413,7 +414,7 @@ namespace Ming_AutoClicker.ViewModels
                     MouseClickAction.Y = value;
                     _macro.UpdatedAt = DateTime.Now;
                     OnPropertyChanged();
-                    System.ComponentModel.CollectionViewSource.GetDefaultView(Actions).Refresh();
+                    CollectionViewSource.GetDefaultView(Actions).Refresh();
                 }
             }
         }
@@ -431,7 +432,7 @@ namespace Ming_AutoClicker.ViewModels
                     MouseClickAction.Operation = value;
                     _macro.UpdatedAt = DateTime.Now;
                     OnPropertyChanged();
-                    System.ComponentModel.CollectionViewSource.GetDefaultView(Actions).Refresh();
+                    CollectionViewSource.GetDefaultView(Actions).Refresh();
                 }
             }
         }
@@ -609,7 +610,7 @@ namespace Ming_AutoClicker.ViewModels
                     ClickY = y;
                     StatusMessage = $"已拾取坐标: ({x}, {y})";
                     // 刷新左侧列表显示（因为 MouseClickAction.ToString() 依赖 X/Y 属性）
-                    System.ComponentModel.CollectionViewSource.GetDefaultView(Actions).Refresh();
+                    CollectionViewSource.GetDefaultView(Actions).Refresh();
                 };
                 pickWindow.Closed += (_, _) =>
                 {
