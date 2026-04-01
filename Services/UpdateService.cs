@@ -20,7 +20,7 @@ namespace Ming_AutoClicker.Services
         private const string GitHubOwner = "vigosss";
         private const string GitHubRepo = "Ming-AutoClicker";
         private const string UpdateFolderName = "update";
-        private const string UpdaterBatchFileName = "updater.bat";
+        private const string UpdaterScriptFileName = "updater.ps1";
 
         private static readonly string AppDirectory = AppDomain.CurrentDomain.BaseDirectory;
         private static readonly string UpdateDirectory = Path.Combine(AppDirectory, UpdateFolderName);
@@ -258,20 +258,19 @@ namespace Ming_AutoClicker.Services
                     return false;
                 }
 
-                // 生成更新批处理脚本
-                var batchPath = Path.Combine(UpdateDirectory, UpdaterBatchFileName);
-                CreateUpdateBatch(batchPath, sourceDir, AppDirectory);
+                // 生成更新 PowerShell 脚本
+                var scriptPath = Path.Combine(UpdateDirectory, UpdaterScriptFileName);
+                CreateUpdateScript(scriptPath, sourceDir, AppDirectory);
 
-                // 启动更新脚本
+                // 启动更新脚本（使用 PowerShell，-WindowStyle Hidden 可靠隐藏窗口）
                 var process = new System.Diagnostics.Process
                 {
                     StartInfo = new System.Diagnostics.ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c \"{batchPath}\"",
+                        FileName = "powershell.exe",
+                        Arguments = $"-ExecutionPolicy Bypass -NoProfile -NonInteractive -WindowStyle Hidden -File \"{scriptPath}\"",
                         CreateNoWindow = true,
-                        UseShellExecute = false,
-                        WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                        UseShellExecute = false
                     }
                 };
 
@@ -300,7 +299,7 @@ namespace Ming_AutoClicker.Services
             {
                 if (Directory.Exists(UpdateDirectory))
                 {
-                    // 只删除 zip 文件和解压目录，保留 updater.bat（可能正在运行）
+                    // 只删除 zip 文件和解压目录，保留 updater.ps1（可能正在运行）
                     foreach (var file in Directory.GetFiles(UpdateDirectory, "*.zip"))
                     {
                         try { File.Delete(file); } catch { }
@@ -346,50 +345,38 @@ namespace Ming_AutoClicker.Services
         }
 
         /// <summary>
-        /// 创建更新替换的批处理脚本
+        /// 创建更新替换的 PowerShell 脚本
         /// 流程：等待应用退出 → 复制文件 → 启动新版本 → 删除临时文件
+        /// 使用 PowerShell 代替批处理，彻底避免 CMD 窗口弹出
         /// </summary>
-        private void CreateUpdateBatch(string batchPath, string sourceDir, string targetDir)
+        private void CreateUpdateScript(string scriptPath, string sourceDir, string targetDir)
         {
             var appName = Path.GetFileName(Environment.ProcessPath ?? "Ming-AutoClicker.exe");
             var appExePath = Path.Combine(targetDir, appName);
-            var newAppExePath = Path.Combine(sourceDir, appName);
+            // PowerShell Get-Process 使用不带扩展名的进程名
+            var processName = Path.GetFileNameWithoutExtension(appName);
 
-            // 使用短路径名避免路径中有空格和中文的问题
-            var script = $@"@echo off
-chcp 65001 >nul 2>&1
-echo 正在更新 智点精灵，请稍候...
+            var script = $@"
+# 等待应用进程退出（最多等 30 秒）
+$waitCount = 0
+while ($waitCount -lt 30) {{
+    $proc = Get-Process -Name '{processName}' -ErrorAction SilentlyContinue
+    if (-not $proc) {{ break }}
+    Start-Sleep -Seconds 1
+    $waitCount++
+}}
 
-:: 等待应用进程退出（最多等 30 秒）
-set /a wait_count=0
-:wait_exit
-tasklist /fi ""imagename eq {appName}"" 2>nul | find /i ""{appName}"" >nul
-if %errorlevel%==0 (
-    set /a wait_count+=1
-    if %wait_count% geq 30 (
-        echo 更新超时，请手动关闭应用后重试。
-        pause
-        goto cleanup
-    )
-    timeout /t 1 /nobreak >nul
-    goto wait_exit
-)
+# 复制所有文件（覆盖）
+Copy-Item -Path '{sourceDir}\*' -Destination '{targetDir}\' -Recurse -Force -ErrorAction SilentlyContinue
 
-:: 复制所有文件（覆盖）
-echo 正在替换文件...
-xcopy ""{sourceDir}\*"" ""{targetDir}\"" /e /y /q >nul 2>&1
+# 启动新版本
+Start-Process -FilePath '{appExePath}'
 
-:: 启动新版本
-echo 正在启动新版本...
-start "" ""{appExePath}""
-
-:: 清理临时文件
-:cleanup
-timeout /t 2 /nobreak >nul
-rd /s /q ""{UpdateDirectory}"" 2>nul
-exit
+# 清理临时文件
+Start-Sleep -Seconds 2
+Remove-Item -Path '{UpdateDirectory}' -Recurse -Force -ErrorAction SilentlyContinue
 ";
-            File.WriteAllText(batchPath, script, System.Text.Encoding.UTF8);
+            File.WriteAllText(scriptPath, script, new System.Text.UTF8Encoding(true));
         }
 
         protected virtual void OnDownloadProgress(long downloadedBytes, long totalBytes, double progress)
