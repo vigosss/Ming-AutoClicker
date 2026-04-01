@@ -2,15 +2,20 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using Ming_AutoClicker.Helpers;
 
 namespace Ming_AutoClicker.Views
 {
     /// <summary>
-    /// 坐标拾取窗口 - 全屏覆盖，按住鼠标拖动拾取屏幕坐标
+    /// 坐标拾取窗口 - 全屏覆盖屏幕截图背景，按住鼠标拖动拾取屏幕坐标
     /// </summary>
     public partial class CoordinatePickWindow : Window
     {
-        private bool _isDragging = false;
+        private readonly int _screenWidth;
+        private readonly int _screenHeight;
+        private readonly System.Drawing.Bitmap _screenBitmap;
+        private bool _isDragging;
 
         /// <summary>
         /// 坐标拾取完成事件
@@ -21,13 +26,15 @@ namespace Ming_AutoClicker.Views
         {
             InitializeComponent();
 
-            // 居中提示文字
-            Loaded += (_, _) =>
-            {
-                Canvas.SetLeft(TipText, (MainCanvas.ActualWidth - TipText.ActualWidth) / 2);
-                Canvas.SetTop(TipText, MainCanvas.ActualHeight / 2 - TipText.ActualHeight / 2);
-            };
+            // 获取虚拟屏幕尺寸（支持多显示器）
+            var (_, _, screenW, screenH) = Win32Api.GetVirtualScreenBounds();
+            _screenWidth = screenW;
+            _screenHeight = screenH;
 
+            // 捕获当前屏幕作为背景
+            _screenBitmap = Win32Api.CaptureVirtualScreen();
+
+            Loaded += CoordinatePickWindow_Loaded;
             KeyDown += (_, e) =>
             {
                 if (e.Key == Key.Escape)
@@ -36,6 +43,21 @@ namespace Ming_AutoClicker.Views
                     Close();
                 }
             };
+        }
+
+        private void CoordinatePickWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // 设置背景截图
+            BackgroundImage.Source = Win32Api.BitmapToBitmapSource(_screenBitmap);
+            BackgroundImage.Width = _screenWidth;
+            BackgroundImage.Height = _screenHeight;
+
+            // 全屏半透明遮罩
+            OverlayPath.Data = new RectangleGeometry(new Rect(0, 0, _screenWidth, _screenHeight));
+
+            // 居中提示文字
+            Canvas.SetLeft(TipText, (_screenWidth - TipText.ActualWidth) / 2);
+            Canvas.SetTop(TipText, (_screenHeight - TipText.ActualHeight) / 2);
         }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -91,12 +113,12 @@ namespace Ming_AutoClicker.Views
             CrossV.X1 = x;
             CrossV.Y1 = 0;
             CrossV.X2 = x;
-            CrossV.Y2 = MainCanvas.ActualHeight;
+            CrossV.Y2 = _screenHeight;
 
             // 更新横线（全屏宽度）
             CrossH.X1 = 0;
             CrossH.Y1 = y;
-            CrossH.X2 = MainCanvas.ActualWidth;
+            CrossH.X2 = _screenWidth;
             CrossH.Y2 = y;
 
             // 更新坐标信息
@@ -108,18 +130,24 @@ namespace Ming_AutoClicker.Views
             double panelY = y + 16;
 
             // 防止超出屏幕右侧
-            if (panelX + InfoPanel.ActualWidth > MainCanvas.ActualWidth)
+            if (panelX + InfoPanel.ActualWidth > _screenWidth)
             {
                 panelX = x - InfoPanel.ActualWidth - 16;
             }
             // 防止超出屏幕底部
-            if (panelY + InfoPanel.ActualHeight > MainCanvas.ActualHeight)
+            if (panelY + InfoPanel.ActualHeight > _screenHeight)
             {
                 panelY = y - InfoPanel.ActualHeight - 16;
             }
 
             Canvas.SetLeft(InfoPanel, panelX);
             Canvas.SetTop(InfoPanel, panelY);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _screenBitmap?.Dispose();
         }
     }
 }

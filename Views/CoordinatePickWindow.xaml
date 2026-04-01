@@ -6,12 +6,18 @@
         Topmost="True"
         ResizeMode="NoResize"
         WindowState="Maximized"
-        Background="#33000000"
+        Background="Black"
         ShowInTaskbar="False"
         Focusable="True"
         Cursor="Cross">
 
     <Canvas x:Name="MainCanvas">
+        <!-- 屏幕截图背景 -->
+        <Image x:Name="BackgroundImage" Stretch="Fill"/>
+
+        <!-- 半透明遮罩 -->
+        <Path x:Name="OverlayPath" Fill="#99000000"/>
+
         <!-- 十字准星竖线 -->
         <Line x:Name="CrossV" Stroke="#FFFF4444" StrokeThickness="1" Opacity="0.8"
               X1="0" Y1="0" X2="0" Y2="0"/>

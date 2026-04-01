@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Ming_AutoClicker.Helpers;
 
@@ -110,7 +109,7 @@ namespace Ming_AutoClicker.Views
         private void RegionSelectWindow_Loaded(object sender, RoutedEventArgs e)
         {
             // 设置背景图片
-            BackgroundImage.Source = BitmapToBitmapSource(_screenBitmap);
+            BackgroundImage.Source = Win32Api.BitmapToBitmapSource(_screenBitmap);
             BackgroundImage.Width = _screenWidth;
             BackgroundImage.Height = _screenHeight;
 
@@ -685,23 +684,6 @@ namespace Ming_AutoClicker.Views
             Close();
         }
 
-        /// <summary>
-        /// Bitmap 转 BitmapSource
-        /// </summary>
-        private static BitmapSource BitmapToBitmapSource(System.Drawing.Bitmap bitmap)
-        {
-            var hBitmap = bitmap.GetHbitmap();
-            try
-            {
-                return System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                    hBitmap, IntPtr.Zero, Int32Rect.Empty,
-                    BitmapSizeOptions.FromEmptyOptions());
-            }
-            finally
-            {
-                Win32Api.DeleteObject(hBitmap);
-            }
-        }
 
         protected override void OnClosed(EventArgs e)
         {

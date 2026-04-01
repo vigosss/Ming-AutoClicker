@@ -248,6 +248,24 @@ namespace Ming_AutoClicker.Helpers
         [DllImport("gdi32.dll")]
         public static extern bool DeleteObject(IntPtr hObject);
 
+        /// <summary>
+        /// 将 System.Drawing.Bitmap 转换为 WPF BitmapSource
+        /// </summary>
+        public static System.Windows.Media.Imaging.BitmapSource BitmapToBitmapSource(System.Drawing.Bitmap bitmap)
+        {
+            var hBitmap = bitmap.GetHbitmap();
+            try
+            {
+                return System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                    hBitmap, IntPtr.Zero, System.Windows.Int32Rect.Empty,
+                    System.Windows.Media.Imaging.BitmapSizeOptions.FromEmptyOptions());
+            }
+            finally
+            {
+                DeleteObject(hBitmap);
+            }
+        }
+
         #endregion
 
         #region 窗口相关
